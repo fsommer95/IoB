@@ -1,25 +1,62 @@
+#include <ESP8266WiFi.h>
+#include "WifiSettings.h"    
+   
 
-/*
- NodeMCU-BlinkendeLED
- Led an dem Modul ESP8266 bzw. Board NodeMCU blinken lassen
- Programm erprobt ab Arduino IDE 1.6.13
- Weitere Beispiele unter https://www.mikrocontroller-elektronik.de/
- */
+int wifiStatus;
 
-#define LED D0 //GPIO16 Interne Led auf dem NodeMCU Board 
-               //oft auch bereits als LED_BUILTIN definiert
-               //man koennte auch schreiben #define LED  16 (was das gleiche ist)
 
-               // #define LED D7 //nur Falls du externe LED z.B. an D7 (GPIO13)
-               // über ca. 330 Ohm Widerstand angeschlossen hast auskommentieren
+
+#define LED D0 //LED PORT
 
 void setup() {
  pinMode(LED, OUTPUT); // Port aus Ausgang schalten
+ 
+       Serial.begin(115200);\
+      delay(200);
+      
+     
+     
+      // We start by connecting to a WiFi network
+     
+      Serial.println();
+      Serial.println();
+      Serial.print("Your are connecting to;");
+      Serial.println(ssid);
+      
+      WiFi.begin(ssid, password);
+      
+      while (WiFi.status() != WL_CONNECTED) {
+        delay(250);
+        digitalWrite(LED, HIGH); //Led port einschlaten
+        delay(250);
+        digitalWrite(LED, LOW); //Led port einschlaten
+        
+        Serial.print(".");
+      }
+
+
+ 
  }
 
 void loop() {
  digitalWrite(LED, LOW); //Led port ausschalten
- delay(1000); //1 Sek Pause
- digitalWrite(LED, HIGH); //Led port einschlaten
+ delay(10000); //1 Sek Pause
+ 
  delay(1000);
+
+ wifiStatus = WiFi.status();
+
+ if(wifiStatus == WL_CONNECTED){
+    Serial.println("");
+    Serial.println("Your ESP is connected!");  
+    Serial.println("Your IP address is: ");
+    Serial.println(WiFi.localIP());  
+    }
+  else{
+    Serial.println("");
+    Serial.println("WiFi not connected");
+    }
+  delay(1000); // check for connection every once a second
+
+ 
  }
