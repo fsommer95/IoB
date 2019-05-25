@@ -1,67 +1,65 @@
-
-#include "HX711.h"  //You must have this library in your arduino library folder
+/*
+ This code reads the value from the load cell. 
+ Use the other sketch to find the calibration factor first.
  
+ This example is based on the code from SparkFun HX711 breakout board with a scale 
+ by SparkFun Electronics: https://github.com/sparkfun/HX711-Load-Cell-Amplifier
+ 
+ This example code uses bogde's library: https://github.com/bogde/HX711
+ 
+ Arduino Uno setup:
+ digital pin 2 -> HX711 CLK
+ digital 3 -> DOUT
+ 5V -> VCC
+ GND -> GND
+ WemosD1mini setup:
+ digital pin 2 -> HX711 CLK
+ digital 3 -> DOUT
+ 3.3V -> VCC
+ GND -> GND
+ Adafruit Feather Huzzah ESP 8266 setup:
+ SCL -> HX711 CLK
+ SDA -> DOUT
+ 3V -> VCC
+ GND -> GND
+ 
+*/
+
+#include "HX711.h"
+
+#define calibration_factor 2007.0 //Use value from calibration sketch
+
+// Use the following for Arduino Uno:
 #define DOUT  3
 #define CLK  2
- 
+// Use the following for WemosD1mini:
+//#define DOUT  D3
+//#define CLK  D2
+// Use the following for Adafruit Huzzah: 
+//#define DOUT  4
+//#define CLK  5
+
 HX711 scale(DOUT, CLK);
- 
-//Change this calibration factor as per your load cell once it is found you many need to vary it in thousands
-float calibration_factor = -96650; //-106600 worked for my 40Kg max scale setup 
- 
-//=============================================================================================
-//                         SETUP
-//=============================================================================================
+
 void setup() {
-  Serial.begin(9600);
-  Serial.println("HX711 Calibration");
-  Serial.println("Remove all weight from scale");
-  Serial.println("After readings begin, place known weight on scale");
-  Serial.println("Press a,s,d,f to increase calibration factor by 10,100,1000,10000 respectively");
-  Serial.println("Press z,x,c,v to decrease calibration factor by 10,100,1000,10000 respectively");
-  Serial.println("Press t for tare");
-  scale.set_scale();
-  scale.tare(); //Reset the scale to 0
- 
-  long zero_factor = scale.read_average(); //Get a baseline reading
-  Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
-  Serial.println(zero_factor);
+  // Use the following for Arduino:
+  //Serial.begin(9600);
+  // Use the following for Adafruit Huzzah or WemosD1mini:
+  Serial.begin(115200);
+  
+  Serial.println("Scale demo");
+
+  scale.set_scale(calibration_factor); //This value is obtained by using the SparkFun_HX711_Calibration sketch
+  scale.tare();  //Assuming there is no weight on the scale at start up, reset the scale to 0
+
+  Serial.println("Readings:");
 }
- 
-//=============================================================================================
-//                         LOOP
-//=============================================================================================
+
 void loop() {
- 
-  scale.set_scale(calibration_factor); //Adjust to this calibration factor
- 
+  delay(1000);
+  
   Serial.print("Reading: ");
-  Serial.print(scale.get_units(), 3);
-  Serial.print(" kg"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
-  Serial.print(" calibration_factor: ");
-  Serial.print(calibration_factor);
+  Serial.print(scale.get_units(), 1); //scale.get_units() returns a float
+  Serial.print(" g"); //Use same units as those used when calibrating
   Serial.println();
- 
-  if(Serial.available())
-  {
-    char temp = Serial.read();
-    if(temp == '+' || temp == 'a')
-      calibration_factor += 10;
-    else if(temp == '-' || temp == 'z')
-      calibration_factor -= 10;
-    else if(temp == 's')
-      calibration_factor += 100;  
-    else if(temp == 'x')
-      calibration_factor -= 100;  
-    else if(temp == 'd')
-      calibration_factor += 1000;  
-    else if(temp == 'c')
-      calibration_factor -= 1000;
-    else if(temp == 'f')
-      calibration_factor += 10000;  
-    else if(temp == 'v')
-      calibration_factor -= 10000;  
-    else if(temp == 't')
-      scale.tare();  //Reset the scale to zero
-  }
 }
